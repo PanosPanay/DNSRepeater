@@ -1,5 +1,6 @@
 #include <iostream>
 #include "dbms.h"
+
 //using namespace std;
 
 DNSDBMS::DNSDBMS():
@@ -59,12 +60,26 @@ void DNSDBMS::Disconnect()
 	}
 }
 
-struct dbms_t
+struct dns_t
 {
-	SQLVARCHAR name;
+	SQLVARCHAR dnsname;
 	SQLBIGINT TTL;
-	SQLVARCHAR sort;
-	SQLVARCHAR type;
-	SQLVARCHAR value;
+	SQLVARCHAR dnsclass;
+	SQLVARCHAR dnstype;
+	SQLBIGINT preference;
+	SQLVARCHAR dnsvalue;
 };
 
+void DNSDBMS::Select(SQLVARCHAR name, SQLVARCHAR cls)
+{
+	char sql[0xFF];
+	SQLHSTMT stm;	//Óï¾ä¾ä±ú
+	dns_t dns;
+
+	std::sprintf(sql,
+		"select value from DNS where dnsname=%ls and dnsclass=%ls",
+		name,
+		cls);
+
+	
+}

@@ -2,24 +2,57 @@
 //
 
 #include "pch.h"
+#include "../DBMS/dbms.h"
 #include <iostream>
+#include <fstream>
+#include <string>
+using namespace std;
 
 int main(int argc, char* argv[])
 {
-	if (argc == 1)			//检索结果为普通IP地址，则向客户返回这个地址（即DNS服务器功能）
+	//3种命令行语法
+	if (argc == 1)			
 	{
 
 	}
-	else if (argc == 2)		//检索结果为IP地址0.0.0.0，则向客户端返回“域名不存在”的报错消息（即不良网站拦截功能）
+	else if (argc == 2)		
 	{
 
 	}
-	else if (argc == 3)		//表中未检索到该域名，则向实际的本地DNS服务器发出查询，并将结果返回给客户端（即DNS中继功能）
+	else if (argc == 3)		
 	{
 
 	}
 
 	return 0;
+}
+
+//将初始配置文件导入域名解析数据库
+int initSet(string fileName)
+{
+	ifstream initFile(fileName.c_str(), ios::in);
+
+	//文件打开失败
+	if (!initFile)
+	{
+		return -1;
+	}
+
+	//文件打开成功
+	else
+	{
+		while (!initFile.eof())
+		{
+			string IP, domain;
+			initFile >> IP >> domain;
+			if (IP != "" && domain != "")
+			{
+				//插入数据库
+				///////////////////////////////////////////////////////
+			}
+		}
+		initFile.close();
+	}
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
