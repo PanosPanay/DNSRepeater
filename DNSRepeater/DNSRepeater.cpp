@@ -3,25 +3,45 @@
 
 #include "pch.h"
 #include "../DBMS/dbms.h"
+#include "repeater.h"
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <Windows.h>
+
 using namespace std;
+
+#define defaultNS "202.106.0.20"				//默认名字服务器
+#define defaultInitFileName "dnsrelay.txt"		//默认配置文件
 
 int main(int argc, char* argv[])
 {
+	string initFileName;						//配置文件
+	ipv4_t nameSever;							//外部dns服务器
+
 	//3种命令行语法
-	if (argc == 1)			
+	if (argc == 1)								//dnsrelay	
 	{
-
+		initFileName = defaultInitFileName;
+		nameSever = inet_addr(defaultNS);
 	}
-	else if (argc == 2)		
+	else if (argc == 2)							//dnsrelay -dd 202.99.96.68
 	{
-
+		initFileName = defaultInitFileName;
+		nameSever = inet_addr(argv[1]);
 	}
-	else if (argc == 3)		
+	else if (argc == 3)							//dnsrelay -d 192.168.0.1 c:\dns-table.txt
 	{
+		initFileName = argv[2];
+		nameSever = inet_addr(argv[1]);
+	}
 
+	initSet(initFileName);						//将配置文件导入域名解析数据库
+
+	DNSRepeater repeater(inet_addr("127.0.0.1"));
+	while (1)
+	{
+		repeater.Run();
 	}
 
 	return 0;
@@ -48,6 +68,7 @@ int initSet(string fileName)
 			if (IP != "" && domain != "")
 			{
 				//插入数据库
+				//insert
 				///////////////////////////////////////////////////////
 			}
 		}

@@ -21,6 +21,7 @@ void DNSRepeater::Run()
 		msg = _com.RecvFrom();
 		switch (msg.type)
 		{
+
 		default:
 			break;
 		}
