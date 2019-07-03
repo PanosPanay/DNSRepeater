@@ -1,7 +1,9 @@
 #include <iostream>
 #include "dbms.h"
+#include "string"
+#include <vector>
 
-//using namespace std;
+using namespace std;
 
 DNSDBMS::DNSDBMS():
 	_env(NULL),_con(NULL)
@@ -60,7 +62,7 @@ void DNSDBMS::Disconnect()
 	}
 }
 
-struct dns_t
+/*struct dns_t
 {
 	SQLVARCHAR dnsname;
 	SQLBIGINT TTL;
@@ -68,16 +70,18 @@ struct dns_t
 	SQLVARCHAR dnstype;
 	SQLBIGINT preference;
 	SQLVARCHAR dnsvalue;
-};
+};*/
 
-void DNSDBMS::Select(SQLVARCHAR name, SQLVARCHAR cls)
+void DNSDBMS::Select(SQLVARCHAR name, SQLBIGINT cls)
 {
 	char sql[0xFF];
-	SQLHSTMT stm;	//语句句柄
-	dns_t dns;
+	SQLHSTMT stm;			//语句句柄
+	//dns_t dns;
+	SQLCHAR value[100];		//查询到的value
+	vector<string> result;
 
 	std::sprintf(sql,
-		"select value from DNS where dnsname=%ls and dnsclass=%ls",
+		"select value from DNS where dnsname=%ls and dnsclass=%I64d",
 		name,
 		cls);
 
@@ -85,11 +89,7 @@ void DNSDBMS::Select(SQLVARCHAR name, SQLVARCHAR cls)
 
 	SQLRETURN ret = SQLAllocStmt(_con, &stm);	//为语句句柄分配内存
 	//将数据缓冲区绑定数据库中的相应字段(第二个参数代表列号)
-	/*// i queryData BUFF_LENGTH
-	//SQLBindCol(hstmt, i, SQL_C_CHAR, queryData[i-1], BUFF_LENGTH, 0);
-	ret = SQLBindCol(hStm, 1, SQL_C_CHAR, dept.department_id, _countof(dept.departmen
-		t_id), 0);*/
-	//ret=SQLBindCol(stm,)
+	ret = SQLBindCol(stm, 16, SQL_C_CHAR, value, _countof(value), 0);
 
 	//遍历结果到相应缓冲区
 	while (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
@@ -97,7 +97,8 @@ void DNSDBMS::Select(SQLVARCHAR name, SQLVARCHAR cls)
 		ret = SQLFetch(stm);
 		if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
 		{
-			///////////////////////////////
+			string valueStr = 
+			result.pushback(valueStr)
 		}
 	}
 	ret = SQLFreeStmt(stm, SQL_DROP);
@@ -106,3 +107,26 @@ void DNSDBMS::Select(SQLVARCHAR name, SQLVARCHAR cls)
 
 	//return data?
 }
+
+void DNSDBMS::Insert(SQLVARCHAR name, SQLBIGINT ttl, SQLBIGINT cls, SQLBIGINT type, SQLBIGINT preference, SQLVARCHAR value)
+{
+	SQLCHAR sql[0xFF];
+	SQLHSTMT stm;	//语句句柄
+	std::sprintf((char*)(sql),
+		"insert into DNS values(%ls,%I64d,%I64d,%I64d,%I64d,%ls)",
+		name,
+		ttl,
+		cls,
+		type,
+		preference,
+		value);
+
+	_protection.lock();
+
+	SQLRETURN ret = SQLAllocStmt(_con, &stm);	//为语句句柄分配内存
+	ret = SQLExecDirect(stm, sql, SQL_NTS);
+	ret = SQLFreeStmt(stm, SQL_DROP);
+
+	_protection.unlock();
+}
+

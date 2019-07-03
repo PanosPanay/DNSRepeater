@@ -13,8 +13,8 @@ public:
 	bool Connect();
 	void Disconnect();
 
-	void Select(SQLVARCHAR name, SQLVARCHAR sort);
-	void Insert()
+	void Select(SQLVARCHAR name, SQLBIGINT sort);
+	void Insert(SQLVARCHAR name, SQLBIGINT ttl, SQLBIGINT cls, SQLBIGINT type, SQLBIGINT preference, SQLVARCHAR value);
 
 private:
 	SQLHENV _env;			//»·¾³¾ä±ú
