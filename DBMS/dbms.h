@@ -14,7 +14,7 @@ public:
 	void Disconnect();
 
 	void Select(SQLVARCHAR name, SQLVARCHAR sort);
-	//void Insert()
+	void Insert()
 
 private:
 	SQLHENV _env;			//»·¾³¾ä±ú

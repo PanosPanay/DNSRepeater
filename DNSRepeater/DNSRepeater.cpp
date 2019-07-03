@@ -25,15 +25,15 @@ int main(int argc, char* argv[])
 		initFileName = defaultInitFileName;
 		nameSever = inet_addr(defaultNS);
 	}
-	else if (argc == 2)							//dnsrelay -dd 202.99.96.68
+	else if (argc == 3)							//dnsrelay -dd 202.99.96.68
 	{
 		initFileName = defaultInitFileName;
-		nameSever = inet_addr(argv[1]);
+		nameSever = inet_addr(argv[2]);
 	}
-	else if (argc == 3)							//dnsrelay -d 192.168.0.1 c:\dns-table.txt
+	else if (argc == 4)							//dnsrelay -d 192.168.0.1 c:\dns-table.txt
 	{
-		initFileName = argv[2];
-		nameSever = inet_addr(argv[1]);
+		initFileName = argv[3];
+		nameSever = inet_addr(argv[2]);
 	}
 
 	initSet(initFileName);						//将配置文件导入域名解析数据库
