@@ -123,9 +123,9 @@ public:
 		/// </summary>
 		struct answer_t
 		{
-			std::string name;
-			dns_t dnstype;
-			class_t cls;
+			std::string name;	//域名
+			dns_t dnstype;		//类型:A,MX,CNMAE,NS...
+			class_t cls;		//分类，因特网为"IN"
 			int32_t ttl;
 			ipv4_t ipv4;		// A模式下有效
 			std::string str;	// CNAME、...模式下有效

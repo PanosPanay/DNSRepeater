@@ -108,7 +108,7 @@ private:
 
 private:
 	/// <summary>
-	/// 本地DNS服务器IPv4地址
+	/// 实际的本地DNS服务器IPv4地址
 	/// </summary>
 	ipv4_t _localDnsServer;
 
@@ -117,7 +117,9 @@ private:
 	/// 唯一标志着一组IP和UDP标识所对应的操作（及目前所处的状态：正在处理、已经提交给本地DNS服务器...）
 	/// 这组记录维持着通信的正常进行（UDP包的相互对应）
 	/// </summary>
-	std::map<std::pair<ipv4_t, id_t>, opt_t> _resolvers;
+	//std::map<std::pair<ipv4_t, id_t>, opt_t> _resolvers; 
+	std::map<id_t, std::pair<ipv4_t, id_t>> _resolvers;		//给pair<ip，id>分配一个pairId，因为可能有不同的ip地址发来的查询请求id相同，因而需要通过pair唯一地确定源。收到外部dns返回地包的id仍未pairID不变
+	//std::map<std::pair<ipv4_t, id_t>, int> _timeoutHander;	//int改为time？处理求助实际本地DNS服务器但超时无应答的情况
 	// std::list<recordv4_t> _cache; // 缓存（暂不考虑）
 
 private:
