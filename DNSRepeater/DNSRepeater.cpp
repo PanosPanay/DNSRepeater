@@ -49,6 +49,10 @@ int main(int argc, char* argv[])
 //将初始配置文件导入域名解析数据库
 int initSet(string fileName)
 {
+	//先清空数据库
+	DNSDBMS dbms;
+	dbms.Clear();
+
 	ifstream initFile(fileName.c_str(), ios::in);
 
 	//文件打开失败
@@ -67,14 +71,15 @@ int initSet(string fileName)
 			initFile >> IP >> domain;
 			if (IP != "" && domain != "")
 			{
-				//插入数据库
-				//insert
-				///////////////////////////////////////////////////////
+				//插入数据库(TTL默认缓存1h，即3600s；cls默认为In；type默认为A类型；preference只在MX模式有效，所以默认为NULL)
+				dbms.Insert(domain, 3600, DNSCom::message_t::class_t::In, DNSCom::message_t::dns_t::A, NULL, IP);
 			}
 		}
 		initFile.close();
 		cout << "配置文件导入成功！" << endl;
 	}
+
+	return 0;
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
