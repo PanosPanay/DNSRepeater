@@ -24,6 +24,9 @@ void DNSRepeater::Run()
 	std::list<DNSCom::message_t::question_t>::iterator qListIt;
 	int blockedFlag = 0;										//为1代表至少有一个question查询的域名被屏蔽，直接回rcode=3
 	int notFoundFlag = 0;										//为1代表至少有一个question查询的域名再数据库中查找不到，直接转发给实际的本地DNS服务器
+	DNSDBMS dbms;
+
+	dbms.Connect();
 
 	while (_success)
 	{
@@ -41,7 +44,7 @@ void DNSRepeater::Run()
 				{
 					DNSCom::message_t::question_t question = *qListIt;
 					std::list<DNSCom::message_t::answer_t> answers;	//一个question可能有多个answers
-					DNSDBMS dbms;
+					//DNSDBMS dbms;
 
 					answers = dbms.Select(question);			//查询数据库				
 					
@@ -124,6 +127,8 @@ void DNSRepeater::Run()
 		}
 		_com.SendTo(SendMsg);									//发送消息包
 	}
+
+	dbms.Disconnect();
 }
 
 void DNSRepeater::Stop()

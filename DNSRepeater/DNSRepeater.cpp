@@ -51,6 +51,7 @@ int initSet(string fileName)
 {
 	//先清空数据库
 	DNSDBMS dbms;
+	dbms.Connect();
 	dbms.Clear();
 
 	ifstream initFile(fileName.c_str(), ios::in);
@@ -79,6 +80,7 @@ int initSet(string fileName)
 		cout << "配置文件导入成功！" << endl;
 	}
 
+	dbms.Disconnect();
 	return 0;
 }
 
