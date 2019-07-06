@@ -104,13 +104,14 @@ std::list<DNSCom::message_t::answer_t> DNSDBMS::Select(DNSCom::message_t::questi
 
 				if (question.dnstype == DNSCom::message_t::dns_t::A)		//A模式
 				{
-					ans.ipv4 = inet_addr(dnsvalue);
+					//ans.ipv4 = inet_addr(dnsvalue);
+					ans.ipv4 = atoi(dnsvalue);
 				}
 
 				else														//其他模式：MX,CNAME,NS等
 				{
 					string str;
-					if (question.dnstype == DNSCom::message_t::dns_t::MX)//MX模式
+					if (question.dnstype == DNSCom::message_t::dns_t::MX)	//MX模式
 					{
 						str = to_string(preference);
 						str += " ";
@@ -177,5 +178,121 @@ void DNSDBMS::Clear()
 	_protection.unlock();
 
 	//Disconnect();															//与ODBC断开连接
+}
+
+//判断记录是否存在（暂时未用到）
+int DNSDBMS::IsExisted(DNSCom::message_t::answer_t answer)
+{
+	char sql[0xFF];
+	SQLHSTMT stm;															//语句句柄
+
+	if (answer.dnstype == DNSCom::message_t::dns_t::A)						//A类型
+	{
+		std::sprintf(sql,
+			"select * from DNS where dnsname=%ls and dnsclass=%I64d and dnstype=%I64d and dnsvalue=%ls",
+			answer.name,
+			answer.cls,
+			answer.dnstype,
+			to_string(answer.ipv4));
+	}
+	else if(answer.dnstype == DNSCom::message_t::dns_t::MX)					//MX类型
+	{
+		//分割answer.str字段为preference和dnsvalue
+		const char* split = " ";
+		char* part1;
+		char* part2;
+		part1 = strtok((char*)answer.str.c_str(), split);
+		part2 = strtok(NULL, split);
+		std::sprintf(sql,
+			"select * from DNS where dnsname=%ls and dnsclass=%I64d and dnstype=%I64d and preference=%I64d and dnsvalue=%ls",
+			answer.name,
+			answer.cls,
+			answer.dnstype,
+			atoi(part1),
+			part2);
+	}
+	else
+	{
+		std::sprintf(sql,
+			"select * from DNS where dnsname=%ls and dnsclass=%I64d and dnstype=%I64d and dnsvalue=%ls",
+			answer.name,
+			answer.cls,
+			answer.dnstype,
+			answer.str);
+	}
+
+	_protection.lock();
+
+	SQLRETURN ret = SQLAllocStmt(_con, &stm);								//为语句句柄分配内存
+
+	int existed = 0;
+	//遍历结果到相应缓冲区
+	while ((ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO) && existed == 0)
+	{
+		ret = SQLFetch(stm);
+		if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
+		{
+			existed = 1;
+			/*if (ttl > 0)
+			{				
+			}*/
+		}
+	}
+	ret = SQLFreeStmt(stm, SQL_DROP);
+
+	_protection.unlock();
+	return existed;
+}
+
+//删除一条记录
+int DNSDBMS::DeleteRecod(DNSCom::message_t::answer_t answer)
+{
+	SQLCHAR sql[0xFF];
+	SQLHSTMT stm;
+
+	if (answer.dnstype == DNSCom::message_t::dns_t::A)						//A类型
+	{
+		std::sprintf((char*)sql,
+			"delete from DNS where dnsname=%ls and dnsclass=%I64d and dnstype=%I64d and dnsvalue=%ls",
+			answer.name,
+			answer.cls,
+			answer.dnstype,
+			to_string(answer.ipv4));
+	}
+	else if (answer.dnstype == DNSCom::message_t::dns_t::MX)					//MX类型
+	{
+		//分割answer.str字段为preference和dnsvalue
+		const char* split = " ";
+		char* part1;
+		char* part2;
+		part1 = strtok((char*)answer.str.c_str(), split);
+		part2 = strtok(NULL, split);
+		std::sprintf((char*)sql,
+			"delete from DNS where dnsname=%ls and dnsclass=%I64d and dnstype=%I64d and preference=%I64d and dnsvalue=%ls",
+			answer.name,
+			answer.cls,
+			answer.dnstype,
+			atoi(part1),
+			part2);
+	}
+	else
+	{
+		std::sprintf((char*)sql,
+			"delete from DNS where dnsname=%ls and dnsclass=%I64d and dnstype=%I64d and dnsvalue=%ls",
+			answer.name,
+			answer.cls,
+			answer.dnstype,
+			answer.str);
+	}
+
+	_protection.lock();
+
+	SQLRETURN ret = SQLAllocStmt(_con, &stm);								//为语句句柄分配内存
+	ret = SQLExecDirect(stm, sql, SQL_NTS);
+	ret = SQLFreeStmt(stm, SQL_DROP);
+
+	_protection.unlock();
+
+	return 1;
 }
 

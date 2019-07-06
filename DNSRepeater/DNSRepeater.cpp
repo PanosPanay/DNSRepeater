@@ -72,8 +72,8 @@ int initSet(string fileName)
 			initFile >> IP >> domain;
 			if (IP != "" && domain != "")
 			{
-				//插入数据库(TTL默认缓存1h，即3600s；cls默认为In；type默认为A类型；preference只在MX模式有效，所以默认为NULL)
-				dbms.Insert(domain, 3600, DNSCom::message_t::class_t::In, DNSCom::message_t::dns_t::A, NULL, IP);
+				//插入数据库(TTL默认缓存1h，即3600s；cls默认为In；type默认为A类型；preference只在MX模式有效，所以默认为0)
+				dbms.Insert(domain, 3600, DNSCom::message_t::class_t::In, DNSCom::message_t::dns_t::A, 0, IP);
 			}
 		}
 		initFile.close();

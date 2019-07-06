@@ -31,6 +31,7 @@ void DNSRepeater::Run()
 	while (_success)
 	{
 		RecvMsg = _com.RecvFrom();								//接收消息包
+
 		switch (RecvMsg.type)
 		{
 		case DNSCom::message_t::type_t::RECV:					//DNS服务器收到的消息类型都是RECV
@@ -39,6 +40,7 @@ void DNSRepeater::Run()
 			case 0:												//0表示是查询请求报文
 				blockedFlag = 0;
 				notFoundFlag = 0;
+
 				//对每一个question的域名检索DNS数据库
 				for (qListIt = RecvMsg.qs.begin(); qListIt!=RecvMsg.qs.end() && blockedFlag == 0; ++qListIt)
 				{
@@ -67,6 +69,7 @@ void DNSRepeater::Run()
 						notFoundFlag = 1;
 					}
 				}
+
 				if (blockedFlag == 1)							//至少有一个question查询的域名被屏蔽，直接回rcode=3
 				{
 					SendMsg = RecvMsg;
@@ -91,7 +94,7 @@ void DNSRepeater::Run()
 					recvPair.first = RecvMsg.ipv4;
 					recvPair.second = RecvMsg.header.id;
 					_resolvers.insert(std::pair<id_t, std::pair<ipv4_t, id_t>>(pairID, recvPair));
-					SendMsg.header.id = pairID;
+					SendMsg.header.id = pairID;					//ID转换
 
 					//转发给实际的本地DNS服务器
 					SendMsg.ipv4 = _localDnsServer;
@@ -109,6 +112,7 @@ void DNSRepeater::Run()
 			case 1:												//1表示是来自外部DNS服务器的响应报文
 				//转发响应回客户端，通过RecvMsg.header.id来确定响应与查询请求是否匹配	
 				mapIt = _resolvers.find(RecvMsg.header.id);
+
 				if (mapIt != _resolvers.end())					//查到
 				{
 					recvPair = _resolvers[RecvMsg.header.id];	//通过RecvMsg.header.id得到pair
@@ -116,7 +120,32 @@ void DNSRepeater::Run()
 					SendMsg.ipv4 = recvPair.first;				//通过pair的地址修改转发消息包的ip
 					_resolvers.erase(mapIt);					//已经转发回给客户端，删除映射表该项
 				}
-				//对查询到的结果插入数据库？/////////////////////////////////(如果数据库中不存在相同的则插入，存在相同的则更新TTL)
+
+				//对查询到的结果插入数据库
+				for (std::list<DNSCom::message_t::answer_t>::iterator aListIt = RecvMsg.as.begin();
+					aListIt != RecvMsg.as.end(); ++aListIt)
+				{
+					//若数据库中已存在则先删除该记录
+					dbms.DeleteRecod(*aListIt);
+
+					//将查询到的结果插入数据库
+					if (aListIt->dnstype == DNSCom::message_t::dns_t::A)		//A类型
+					{
+						dbms.Insert(aListIt->name, aListIt->ttl, aListIt->cls, aListIt->dnstype, 0, std::to_string(aListIt->ipv4));
+					}
+					else if (aListIt->dnstype == DNSCom::message_t::dns_t::MX)	//MX类型
+					{
+						const char* split = " ";
+						char* part1;							//preference
+						char* part2;							//dnsvalue
+						part1 = strtok((char*)aListIt->str.c_str(), split);
+						dbms.Insert(aListIt->name, aListIt->ttl, aListIt->cls, aListIt->dnstype, atoi(part1), part2);
+					}
+					else
+					{
+						dbms.Insert(aListIt->name, aListIt->ttl, aListIt->cls, aListIt->dnstype, 0, aListIt->str);
+					}
+				}
 				break;
 			default:
 				break;
