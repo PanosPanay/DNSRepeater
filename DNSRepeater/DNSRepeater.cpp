@@ -11,7 +11,7 @@
 
 using namespace std;
 
-#define defaultNS "202.106.0.20"				//默认名字服务器
+#define defaultNS "10.9.3.4"					//默认名字服务器
 #define defaultInitFileName "dnsrelay.txt"		//默认配置文件
 
 int main(int argc, char* argv[])
